@@ -23,23 +23,7 @@
 				});
 			},
 			login:function(){
-				uni.login({
-					provider:'weixin',
-					success:function(resp){
-						let code = resp.code;
-						console.log(code);
-						//获取用户信息
-						uni.getUserInfo({
-							provider:'weixin',
-							success:function(resp){
-								let nickName = resp.userInfo.nickName;
-								let avatarUrl = resp.userInfo.avatarUrl;
-								console.log(nickName)
-								console.log(avatarUrl)
-							}
-						});
-					}
-				});
+
 			}
 		}
 	};

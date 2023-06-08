@@ -19,7 +19,7 @@
     "condition": false
   },
   "compileType": "miniprogram",
-  "libVersion": "2.32.0",
+  "libVersion": "2.32.1",
   "appid": "wx7003f3682b774833",
   "projectname": "oa-wx",
   "condition": {},

@@ -1,11 +1,4 @@
 "use strict";
-const _export_sfc = (sfc, props) => {
-  const target = sfc.__vccOpts || sfc;
-  for (const [key, val] of props) {
-    target[key] = val;
-  }
-  return target;
-};
 function makeMap(str, expectsLowerCase) {
   const map = /* @__PURE__ */ Object.create(null);
   const list = str.split(",");
@@ -107,6 +100,50 @@ const looseToNumber = (val) => {
   const n = parseFloat(val);
   return isNaN(n) ? val : n;
 };
+const LOCALE_ZH_HANS = "zh-Hans";
+const LOCALE_ZH_HANT = "zh-Hant";
+const LOCALE_EN = "en";
+const LOCALE_FR = "fr";
+const LOCALE_ES = "es";
+function include(str, parts) {
+  return !!parts.find((part) => str.indexOf(part) !== -1);
+}
+function startsWith(str, parts) {
+  return parts.find((part) => str.indexOf(part) === 0);
+}
+function normalizeLocale(locale, messages) {
+  if (!locale) {
+    return;
+  }
+  locale = locale.trim().replace(/_/g, "-");
+  if (messages && messages[locale]) {
+    return locale;
+  }
+  locale = locale.toLowerCase();
+  if (locale === "chinese") {
+    return LOCALE_ZH_HANS;
+  }
+  if (locale.indexOf("zh") === 0) {
+    if (locale.indexOf("-hans") > -1) {
+      return LOCALE_ZH_HANS;
+    }
+    if (locale.indexOf("-hant") > -1) {
+      return LOCALE_ZH_HANT;
+    }
+    if (include(locale, ["-tw", "-hk", "-mo", "-cht"])) {
+      return LOCALE_ZH_HANT;
+    }
+    return LOCALE_ZH_HANS;
+  }
+  let locales = [LOCALE_EN, LOCALE_FR, LOCALE_ES];
+  if (messages && Object.keys(messages).length > 0) {
+    locales = Object.keys(messages);
+  }
+  const lang = startsWith(locale, locales);
+  if (lang) {
+    return lang;
+  }
+}
 const LINEFEED = "\n";
 const SLOT_DEFAULT_NAME = "d";
 const ON_SHOW = "onShow";
@@ -332,50 +369,6 @@ E.prototype = {
   }
 };
 var E$1 = E;
-const LOCALE_ZH_HANS = "zh-Hans";
-const LOCALE_ZH_HANT = "zh-Hant";
-const LOCALE_EN = "en";
-const LOCALE_FR = "fr";
-const LOCALE_ES = "es";
-function include(str, parts) {
-  return !!parts.find((part) => str.indexOf(part) !== -1);
-}
-function startsWith(str, parts) {
-  return parts.find((part) => str.indexOf(part) === 0);
-}
-function normalizeLocale(locale, messages) {
-  if (!locale) {
-    return;
-  }
-  locale = locale.trim().replace(/_/g, "-");
-  if (messages && messages[locale]) {
-    return locale;
-  }
-  locale = locale.toLowerCase();
-  if (locale === "chinese") {
-    return LOCALE_ZH_HANS;
-  }
-  if (locale.indexOf("zh") === 0) {
-    if (locale.indexOf("-hans") > -1) {
-      return LOCALE_ZH_HANS;
-    }
-    if (locale.indexOf("-hant") > -1) {
-      return LOCALE_ZH_HANT;
-    }
-    if (include(locale, ["-tw", "-hk", "-mo", "-cht"])) {
-      return LOCALE_ZH_HANT;
-    }
-    return LOCALE_ZH_HANS;
-  }
-  let locales = [LOCALE_EN, LOCALE_FR, LOCALE_ES];
-  if (messages && Object.keys(messages).length > 0) {
-    locales = Object.keys(messages);
-  }
-  const lang = startsWith(locale, locales);
-  if (lang) {
-    return lang;
-  }
-}
 function getBaseSystemInfo() {
   return wx.getSystemInfoSync();
 }
@@ -1532,6 +1525,165 @@ var protocols = /* @__PURE__ */ Object.freeze({
 });
 const wx$1 = initWx();
 var index = initUni(shims, protocols, wx$1);
+function getTarget$1() {
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  if (typeof globalThis !== "undefined") {
+    return globalThis;
+  }
+  if (typeof global !== "undefined") {
+    return global;
+  }
+  if (typeof my !== "undefined") {
+    return my;
+  }
+}
+class Socket {
+  constructor(host2) {
+    this.sid = "";
+    this.ackTimeout = 5e3;
+    this.closed = false;
+    this._ackTimer = 0;
+    this._onCallbacks = {};
+    this.host = host2;
+    setTimeout(() => {
+      this.connect();
+    }, 50);
+  }
+  connect() {
+    this._socket = index.connectSocket({
+      url: `ws://${this.host}/socket.io/?EIO=4&transport=websocket`,
+      multiple: true,
+      complete(res) {
+      }
+    });
+    this._socket.onOpen((res) => {
+    });
+    this._socket.onMessage(({ data }) => {
+      if (typeof my !== "undefined") {
+        data = data.data;
+      }
+      if (typeof data !== "string") {
+        return;
+      }
+      if (data[0] === "0") {
+        this._send("40");
+        const res = JSON.parse(data.slice(1));
+        this.sid = res.sid;
+      } else if (data[0] + data[1] === "40") {
+        this.sid = JSON.parse(data.slice(2)).sid;
+        this._trigger("connect");
+      } else if (data === "3") {
+        this._send("2");
+      } else if (data === "2") {
+        this._send("3");
+      } else {
+        const match = /\[.*\]/.exec(data);
+        if (!match)
+          return;
+        try {
+          const [event, args] = JSON.parse(match[0]);
+          this._trigger(event, args);
+        } catch (err) {
+          console.error("Vue DevTools onMessage: ", err);
+        }
+      }
+    });
+    this._socket.onClose((res) => {
+      this.closed = true;
+      this._trigger("disconnect", res);
+    });
+    this._socket.onError((res) => {
+      console.error(res.errMsg);
+    });
+  }
+  on(event, callback) {
+    (this._onCallbacks[event] || (this._onCallbacks[event] = [])).push(callback);
+  }
+  emit(event, data) {
+    if (this.closed) {
+      return;
+    }
+    this._heartbeat();
+    this._send(`42${JSON.stringify(typeof data !== "undefined" ? [event, data] : [event])}`);
+  }
+  disconnect() {
+    clearTimeout(this._ackTimer);
+    if (this._socket && !this.closed) {
+      this._send("41");
+      this._socket.close({});
+    }
+  }
+  _heartbeat() {
+    clearTimeout(this._ackTimer);
+    this._ackTimer = setTimeout(() => {
+      this._socket && this._socket.send({ data: "3" });
+    }, this.ackTimeout);
+  }
+  _send(data) {
+    this._socket && this._socket.send({ data });
+  }
+  _trigger(event, args) {
+    const callbacks = this._onCallbacks[event];
+    if (callbacks) {
+      callbacks.forEach((callback) => {
+        callback(args);
+      });
+    }
+  }
+}
+let socketReadyCallback;
+getTarget$1().__VUE_DEVTOOLS_ON_SOCKET_READY__ = (callback) => {
+  socketReadyCallback = callback;
+};
+let targetHost = "";
+const hosts = "192.168.31.149,192.168.150.1,10.0.0.1".split(",");
+setTimeout(() => {
+  index.request({
+    url: `http://${"localhost"}:${9500}`,
+    timeout: 1e3,
+    success() {
+      targetHost = "localhost";
+      initSocket();
+    },
+    fail() {
+      if (!targetHost && hosts.length) {
+        hosts.forEach((host2) => {
+          index.request({
+            url: `http://${host2}:${9500}`,
+            timeout: 1e3,
+            success() {
+              if (!targetHost) {
+                targetHost = host2;
+                initSocket();
+              }
+            }
+          });
+        });
+      }
+    }
+  });
+}, 0);
+throwConnectionError();
+function throwConnectionError() {
+  setTimeout(() => {
+    if (!targetHost) {
+      throw new Error("未能获取局域网地址，本地调试服务不可用");
+    }
+  }, (hosts.length + 1) * 1100);
+}
+function initSocket() {
+  getTarget$1().__VUE_DEVTOOLS_SOCKET__ = new Socket(targetHost + ":8098");
+  socketReadyCallback();
+}
+const _export_sfc = (sfc, props) => {
+  const target = sfc.__vccOpts || sfc;
+  for (const [key, val] of props) {
+    target[key] = val;
+  }
+  return target;
+};
 function warn$1(msg, ...args) {
   console.warn(`[Vue warn] ${msg}`, ...args);
 }
@@ -6060,6 +6212,13 @@ const HOOKS = [
 ];
 function parseApp(instance, parseAppOptions) {
   const internalInstance = instance.$;
+  {
+    Object.defineProperty(internalInstance.ctx, "$children", {
+      get() {
+        return getCurrentPages().map((page) => page.$vm);
+      }
+    });
+  }
   const appOptions = {
     globalData: instance.$options && instance.$options.globalData || {},
     $vm: instance,
@@ -6490,6 +6649,9 @@ function parseComponent(vueOptions, { parse, mocks: mocks2, isPage: isPage2, ini
     lifetimes: initLifetimes2({ mocks: mocks2, isPage: isPage2, initRelation: initRelation2, vueOptions }),
     pageLifetimes: {
       show() {
+        {
+          devtoolsComponentAdded(this.$vm.$);
+        }
         this.$vm && this.$vm.$callHook("onPageShow");
       },
       hide() {

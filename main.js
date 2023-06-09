@@ -20,8 +20,9 @@ export function createApp() {
 	//定义全局url
 	let baseUrl = "http://localhost:8080"
 	app.config.globalProperties.url = {
-		register: baseUrl + "/user/register"
-	};
+		register: baseUrl + "/user/register",
+		login: baseUrl + "/user/login"
+	}
 	//定义全局ajax
 	app.config.globalProperties.ajax = (url, method, data, fun) => {
 		uni.request({
@@ -52,9 +53,10 @@ export function createApp() {
 					fun(resp)
 				} else {
 					//其他返回值都回弹出相应的面包屑
+					console.log(resp.data)
 					uni.showToast({
 						icon: 'none',
-						title: resp.data
+						title: resp.data.msg==null?"注册失败":resp.data.msg
 					})
 				}
 			}

@@ -328,8 +328,8 @@ const E = function() {
 };
 E.prototype = {
   on: function(name, callback, ctx) {
-    var e2 = this.e || (this.e = {});
-    (e2[name] || (e2[name] = [])).push({
+    var e = this.e || (this.e = {});
+    (e[name] || (e[name] = [])).push({
       fn: callback,
       ctx
     });
@@ -355,8 +355,8 @@ E.prototype = {
     return this;
   },
   off: function(name, callback) {
-    var e2 = this.e || (this.e = {});
-    var evts = e2[name];
+    var e = this.e || (this.e = {});
+    var evts = e[name];
     var liveEvents = [];
     if (evts && callback) {
       for (var i = 0, len = evts.length; i < len; i++) {
@@ -364,7 +364,7 @@ E.prototype = {
           liveEvents.push(evts[i]);
       }
     }
-    liveEvents.length ? e2[name] = liveEvents : delete e2[name];
+    liveEvents.length ? e[name] = liveEvents : delete e[name];
     return this;
   }
 };
@@ -495,8 +495,8 @@ function tryCatch(fn) {
   return function() {
     try {
       return fn.apply(fn, arguments);
-    } catch (e2) {
-      console.error(e2);
+    } catch (e) {
+      console.error(e);
     }
   };
 }
@@ -931,7 +931,7 @@ let enabled;
 function normalizePushMessage(message) {
   try {
     return JSON.parse(message);
-  } catch (e2) {
+  } catch (e) {
   }
   return message;
 }
@@ -1525,158 +1525,6 @@ var protocols = /* @__PURE__ */ Object.freeze({
 });
 const wx$1 = initWx();
 var index = initUni(shims, protocols, wx$1);
-function getTarget$1() {
-  if (typeof window !== "undefined") {
-    return window;
-  }
-  if (typeof globalThis !== "undefined") {
-    return globalThis;
-  }
-  if (typeof global !== "undefined") {
-    return global;
-  }
-  if (typeof my !== "undefined") {
-    return my;
-  }
-}
-class Socket {
-  constructor(host2) {
-    this.sid = "";
-    this.ackTimeout = 5e3;
-    this.closed = false;
-    this._ackTimer = 0;
-    this._onCallbacks = {};
-    this.host = host2;
-    setTimeout(() => {
-      this.connect();
-    }, 50);
-  }
-  connect() {
-    this._socket = index.connectSocket({
-      url: `ws://${this.host}/socket.io/?EIO=4&transport=websocket`,
-      multiple: true,
-      complete(res) {
-      }
-    });
-    this._socket.onOpen((res) => {
-    });
-    this._socket.onMessage(({ data }) => {
-      if (typeof my !== "undefined") {
-        data = data.data;
-      }
-      if (typeof data !== "string") {
-        return;
-      }
-      if (data[0] === "0") {
-        this._send("40");
-        const res = JSON.parse(data.slice(1));
-        this.sid = res.sid;
-      } else if (data[0] + data[1] === "40") {
-        this.sid = JSON.parse(data.slice(2)).sid;
-        this._trigger("connect");
-      } else if (data === "3") {
-        this._send("2");
-      } else if (data === "2") {
-        this._send("3");
-      } else {
-        const match = /\[.*\]/.exec(data);
-        if (!match)
-          return;
-        try {
-          const [event, args] = JSON.parse(match[0]);
-          this._trigger(event, args);
-        } catch (err) {
-          console.error("Vue DevTools onMessage: ", err);
-        }
-      }
-    });
-    this._socket.onClose((res) => {
-      this.closed = true;
-      this._trigger("disconnect", res);
-    });
-    this._socket.onError((res) => {
-      console.error(res.errMsg);
-    });
-  }
-  on(event, callback) {
-    (this._onCallbacks[event] || (this._onCallbacks[event] = [])).push(callback);
-  }
-  emit(event, data) {
-    if (this.closed) {
-      return;
-    }
-    this._heartbeat();
-    this._send(`42${JSON.stringify(typeof data !== "undefined" ? [event, data] : [event])}`);
-  }
-  disconnect() {
-    clearTimeout(this._ackTimer);
-    if (this._socket && !this.closed) {
-      this._send("41");
-      this._socket.close({});
-    }
-  }
-  _heartbeat() {
-    clearTimeout(this._ackTimer);
-    this._ackTimer = setTimeout(() => {
-      this._socket && this._socket.send({ data: "3" });
-    }, this.ackTimeout);
-  }
-  _send(data) {
-    this._socket && this._socket.send({ data });
-  }
-  _trigger(event, args) {
-    const callbacks = this._onCallbacks[event];
-    if (callbacks) {
-      callbacks.forEach((callback) => {
-        callback(args);
-      });
-    }
-  }
-}
-let socketReadyCallback;
-getTarget$1().__VUE_DEVTOOLS_ON_SOCKET_READY__ = (callback) => {
-  socketReadyCallback = callback;
-};
-let targetHost = "";
-const hosts = "192.168.31.149,192.168.150.1,10.0.0.1".split(",");
-setTimeout(() => {
-  index.request({
-    url: `http://${"localhost"}:${9500}`,
-    timeout: 1e3,
-    success() {
-      targetHost = "localhost";
-      initSocket();
-    },
-    fail() {
-      if (!targetHost && hosts.length) {
-        hosts.forEach((host2) => {
-          index.request({
-            url: `http://${host2}:${9500}`,
-            timeout: 1e3,
-            success() {
-              if (!targetHost) {
-                targetHost = host2;
-                initSocket();
-              }
-            }
-          });
-        });
-      }
-    }
-  });
-}, 0);
-throwConnectionError();
-function throwConnectionError() {
-  setTimeout(() => {
-    if (!targetHost) {
-      throw new Error("未能获取局域网地址，本地调试服务不可用");
-    }
-  }, (hosts.length + 1) * 1100);
-}
-function initSocket() {
-  getTarget$1().__VUE_DEVTOOLS_SOCKET__ = new Socket(targetHost + ":8098");
-  socketReadyCallback();
-}
 const _export_sfc = (sfc, props) => {
   const target = sfc.__vccOpts || sfc;
   for (const [key, val] of props) {
@@ -5423,14 +5271,14 @@ function findComponentPublicInstance(mpComponents, id) {
   }
   return null;
 }
-function setTemplateRef({ r, f: f2 }, refValue, setupState) {
+function setTemplateRef({ r, f }, refValue, setupState) {
   if (isFunction(r)) {
     r(refValue, {});
   } else {
     const _isString = isString(r);
     const _isRef = isRef(r);
     if (_isString || _isRef) {
-      if (f2) {
+      if (f) {
         if (!_isRef) {
           return;
         }
@@ -5655,8 +5503,8 @@ function setupRenderEffect(instance) {
   update.id = instance.uid;
   toggleRecurse(instance, true);
   {
-    effect.onTrack = instance.rtc ? (e2) => invokeArrayFns$1(instance.rtc, e2) : void 0;
-    effect.onTrigger = instance.rtg ? (e2) => invokeArrayFns$1(instance.rtg, e2) : void 0;
+    effect.onTrack = instance.rtc ? (e) => invokeArrayFns$1(instance.rtc, e) : void 0;
+    effect.onTrigger = instance.rtg ? (e) => invokeArrayFns$1(instance.rtg, e) : void 0;
     update.ownerInstance = instance;
   }
   update();
@@ -5929,21 +5777,21 @@ function vOn(value, key) {
   return name;
 }
 function createInvoker(initialValue, instance) {
-  const invoker = (e2) => {
-    patchMPEvent(e2);
-    let args = [e2];
-    if (e2.detail && e2.detail.__args__) {
-      args = e2.detail.__args__;
+  const invoker = (e) => {
+    patchMPEvent(e);
+    let args = [e];
+    if (e.detail && e.detail.__args__) {
+      args = e.detail.__args__;
     }
     const eventValue = invoker.value;
-    const invoke = () => callWithAsyncErrorHandling(patchStopImmediatePropagation(e2, eventValue), instance, 5, args);
-    const eventTarget = e2.target;
+    const invoke = () => callWithAsyncErrorHandling(patchStopImmediatePropagation(e, eventValue), instance, 5, args);
+    const eventTarget = e.target;
     const eventSync = eventTarget ? eventTarget.dataset ? String(eventTarget.dataset.eventsync) === "true" : false : false;
-    if (bubbles.includes(e2.type) && !eventSync) {
+    if (bubbles.includes(e.type) && !eventSync) {
       setTimeout(invoke);
     } else {
       const res = invoke();
-      if (e2.type === "input" && (isArray(res) || isPromise(res))) {
+      if (e.type === "input" && (isArray(res) || isPromise(res))) {
         return;
       }
       return res;
@@ -5987,53 +5835,19 @@ function patchMPEvent(event) {
     }
   }
 }
-function patchStopImmediatePropagation(e2, value) {
+function patchStopImmediatePropagation(e, value) {
   if (isArray(value)) {
-    const originalStop = e2.stopImmediatePropagation;
-    e2.stopImmediatePropagation = () => {
-      originalStop && originalStop.call(e2);
-      e2._stopped = true;
+    const originalStop = e.stopImmediatePropagation;
+    e.stopImmediatePropagation = () => {
+      originalStop && originalStop.call(e);
+      e._stopped = true;
     };
-    return value.map((fn) => (e3) => !e3._stopped && fn(e3));
+    return value.map((fn) => (e2) => !e2._stopped && fn(e2));
   } else {
     return value;
   }
 }
-function vFor(source, renderItem) {
-  let ret;
-  if (isArray(source) || isString(source)) {
-    ret = new Array(source.length);
-    for (let i = 0, l = source.length; i < l; i++) {
-      ret[i] = renderItem(source[i], i, i);
-    }
-  } else if (typeof source === "number") {
-    if (!Number.isInteger(source)) {
-      warn(`The v-for range expect an integer value but got ${source}.`);
-      return [];
-    }
-    ret = new Array(source);
-    for (let i = 0; i < source; i++) {
-      ret[i] = renderItem(i + 1, i, i);
-    }
-  } else if (isObject(source)) {
-    if (source[Symbol.iterator]) {
-      ret = Array.from(source, (item, i) => renderItem(item, i, i));
-    } else {
-      const keys = Object.keys(source);
-      ret = new Array(keys.length);
-      for (let i = 0, l = keys.length; i < l; i++) {
-        const key = keys[i];
-        ret[i] = renderItem(source[key], key, i);
-      }
-    }
-  } else {
-    ret = [];
-  }
-  return ret;
-}
 const o = (value, key) => vOn(value, key);
-const f = (source, renderItem) => vFor(source, renderItem);
-const e = (target, ...sources) => extend(target, ...sources);
 const t = (val) => toDisplayString(val);
 function createApp$1(rootComponent, rootProps = null) {
   rootComponent && (rootComponent.mpType = "app");
@@ -6212,13 +6026,6 @@ const HOOKS = [
 ];
 function parseApp(instance, parseAppOptions) {
   const internalInstance = instance.$;
-  {
-    Object.defineProperty(internalInstance.ctx, "$children", {
-      get() {
-        return getCurrentPages().map((page) => page.$vm);
-      }
-    });
-  }
   const appOptions = {
     globalData: instance.$options && instance.$options.globalData || {},
     $vm: instance,
@@ -6649,9 +6456,6 @@ function parseComponent(vueOptions, { parse, mocks: mocks2, isPage: isPage2, ini
     lifetimes: initLifetimes2({ mocks: mocks2, isPage: isPage2, initRelation: initRelation2, vueOptions }),
     pageLifetimes: {
       show() {
-        {
-          devtoolsComponentAdded(this.$vm.$);
-        }
         this.$vm && this.$vm.$callHook("onPageShow");
       },
       hide() {
@@ -6866,8 +6670,6 @@ const createSubpackageApp = initCreateSubpackageApp();
 }
 exports._export_sfc = _export_sfc;
 exports.createSSRApp = createSSRApp;
-exports.e = e;
-exports.f = f;
 exports.index = index;
 exports.o = o;
 exports.t = t;

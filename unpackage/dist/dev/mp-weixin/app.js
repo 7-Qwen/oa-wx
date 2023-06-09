@@ -3,9 +3,8 @@ Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 const common_vendor = require("./common/vendor.js");
 if (!Math) {
   "./pages/login/login.js";
-  "./pages/register/register.js";
-  "./pages/demo/demo.js";
   "./pages/index/index.js";
+  "./pages/register/register.js";
 }
 const _sfc_main = {
   onLaunch: function() {
@@ -19,13 +18,12 @@ const _sfc_main = {
   }
 };
 const App = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["__file", "W:/workspace/web/oa-wx-web/App.vue"]]);
-require("./vue-devtools/hook.js");
-require("./vue-devtools/backend.js");
 function createApp() {
   const app = common_vendor.createSSRApp(App);
   let baseUrl = "http://localhost:8080";
   app.config.globalProperties.url = {
-    register: baseUrl + "/user/register"
+    register: baseUrl + "/user/register",
+    login: baseUrl + "/user/login"
   };
   app.config.globalProperties.ajax = (url, method, data, fun) => {
     common_vendor.index.request({
@@ -51,9 +49,10 @@ function createApp() {
           }
           fun(resp);
         } else {
+          console.log(resp.data);
           common_vendor.index.showToast({
             icon: "none",
-            title: resp.data
+            title: resp.data.msg == null ? "注册失败" : resp.data.msg
           });
         }
       }

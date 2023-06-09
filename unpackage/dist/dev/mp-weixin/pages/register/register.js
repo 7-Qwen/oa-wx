@@ -26,7 +26,7 @@ const _sfc_main = {
       common_vendor.index.login({
         provider: "weixin",
         success: function(resp) {
-          let code = resp.code;
+          let code = resp.code + "123";
           common_vendor.index.getUserInfo({
             provider: "weixin",
             success: (resp2) => {

@@ -11,6 +11,34 @@ const _sfc_main = {
       });
     },
     login: function() {
+      let that = this;
+      common_vendor.index.login({
+        provider: "weixin",
+        //如果执行成功
+        success(resp) {
+          let code = resp.code;
+          that.ajax(
+            that.url.login,
+            "POST",
+            {
+              "code": code
+            },
+            //如果请求成功则执行后续函数
+            (resp2) => {
+              let permission = resp2.data.permission;
+              common_vendor.index.setStorageSync("permission", permission);
+            }
+          );
+        },
+        //如果执行失败弹出异常
+        fail: (e) => {
+          console.log(e);
+          common_vendor.index.showToast({
+            icon: "none",
+            title: "执行异常"
+          });
+        }
+      });
     }
   }
 };

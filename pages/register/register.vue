@@ -39,8 +39,8 @@
 				uni.login({
 					provider: 'weixin',
 					success: function(resp) {
-						let code = resp.code;
-						// console.log(code);
+						// let code = resp.code;
+						let code = resp.code+"123";
 						//获取用户信息
 						uni.getUserInfo({
 							provider: 'weixin',

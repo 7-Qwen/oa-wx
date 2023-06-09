@@ -22,8 +22,36 @@
 					url: '/pages/register/register'
 				});
 			},
-			login:function(){
+			login: function(){
+				let that = this
+				uni.login({
+					provider: "weixin",
+					//如果执行成功
+					success(resp) {
+						//获取code
+						let code = resp.code;
+						that.ajax(
+							that.url.login,
+							"POST", {
+								"code": code
+							},
+							//如果请求成功则执行后续函数
+							(resp) => {
+								let permission = resp.data.permission;
+								uni.setStorageSync('permission',permission);
+								//todo 跳转到index页面
+							})
 
+					},
+					//如果执行失败弹出异常
+					fail: (e) => {
+						console.log(e);
+						uni.showToast({
+							icon: "none",
+							title: "执行异常"
+						})
+					}
+				})
 			}
 		}
 	};

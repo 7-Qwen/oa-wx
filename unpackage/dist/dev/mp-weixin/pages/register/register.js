@@ -26,7 +26,7 @@ const _sfc_main = {
       common_vendor.index.login({
         provider: "weixin",
         success: function(resp) {
-          let code = resp.code + "123";
+          let code = resp.code;
           common_vendor.index.getUserInfo({
             provider: "weixin",
             success: (resp2) => {
@@ -45,6 +45,9 @@ const _sfc_main = {
                 common_vendor.index.showToast({
                   icon: "none",
                   title: "注册成功,即将前往主页"
+                });
+                common_vendor.index.switchTab({
+                  url: "../index/index"
                 });
               });
             }

@@ -5,6 +5,11 @@ if (!Math) {
   "./pages/login/login.js";
   "./pages/index/index.js";
   "./pages/register/register.js";
+  "./pages/meeting_list/meeting_list.js";
+  "./pages/document/document.js";
+  "./pages/contacts/contacts.js";
+  "./pages/mine/mine.js";
+  "./pages/checkin/checkin.js";
 }
 const _sfc_main = {
   onLaunch: function() {

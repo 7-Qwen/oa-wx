@@ -39,8 +39,8 @@
 				uni.login({
 					provider: 'weixin',
 					success: function(resp) {
-						// let code = resp.code;
-						let code = resp.code+"123";
+						let code = resp.code;
+						// let code = resp.code+"123";
 						//获取用户信息
 						uni.getUserInfo({
 							provider: 'weixin',
@@ -66,6 +66,9 @@
 										title: "注册成功,即将前往主页"
 									})
 									//todo跳转到index页面
+									uni.switchTab({
+										url:"../index/index"
+									})
 								})
 							},
 						});

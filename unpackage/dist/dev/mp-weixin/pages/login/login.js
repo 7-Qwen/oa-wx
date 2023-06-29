@@ -27,6 +27,9 @@ const _sfc_main = {
             (resp2) => {
               let permission = resp2.data.permission;
               common_vendor.index.setStorageSync("permission", permission);
+              common_vendor.index.switchTab({
+                url: "../index/index"
+              });
             }
           );
         },

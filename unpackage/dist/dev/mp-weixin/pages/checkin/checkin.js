@@ -1,5 +1,7 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
+const lib_qqmapWxJssdk = require("../../lib/qqmap-wx-jssdk.js");
+var qqmapsdk;
 const _sfc_main = {
   data() {
     return {
@@ -9,6 +11,11 @@ const _sfc_main = {
       showCamera: true,
       showImage: false
     };
+  },
+  onLoad: function() {
+    qqmapsdk = new lib_qqmapWxJssdk.QQMapWX({
+      key: "D2ZBZ-WPMCT-VAIXM-VE6FP-FC753-TYB7O"
+    });
   },
   methods: {
     clickBtn: function() {
@@ -22,6 +29,37 @@ const _sfc_main = {
             that.showCamera = false;
             that.showImage = true;
             that.btnText = "签到";
+          }
+        });
+      } else {
+        common_vendor.index.showLoading({
+          title: "签到中请稍后"
+        });
+        setTimeout(function() {
+          common_vendor.index.hideLoading();
+        }, 3e3);
+        common_vendor.index.getLocation({
+          type: "wgs84",
+          success: function(resp) {
+            let latitude = resp.latitude;
+            let longitude = resp.longitude;
+            console.log(latitude);
+            console.log(longitude);
+            qqmapsdk.reverseGeocoder({
+              location: {
+                latitude,
+                longitude
+              },
+              success: function(res) {
+                console.log(res.result.address);
+                res.result.address;
+                let addressComponent = res.result.address_component;
+                addressComponent.nation;
+                addressComponent.provice;
+                addressComponent.city;
+                addressComponent.district;
+              }
+            });
           }
         });
       }

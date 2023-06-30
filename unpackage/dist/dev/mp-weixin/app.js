@@ -25,7 +25,7 @@ const _sfc_main = {
 const App = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["__file", "W:/workspace/web/oa-wx-web/App.vue"]]);
 function createApp() {
   const app = common_vendor.createSSRApp(App);
-  let baseUrl = "http://localhost:8080";
+  let baseUrl = "http://192.168.31.149:8080";
   app.config.globalProperties.url = {
     register: baseUrl + "/user/register",
     login: baseUrl + "/user/login"

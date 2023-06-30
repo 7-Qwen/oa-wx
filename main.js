@@ -18,7 +18,7 @@ import {
 export function createApp() {
 	const app = createSSRApp(App)
 	//定义全局url
-	let baseUrl = "http://localhost:8080"
+	let baseUrl = "http://192.168.31.149:8080"
 	app.config.globalProperties.url = {
 		register: baseUrl + "/user/register",
 		login: baseUrl + "/user/login"

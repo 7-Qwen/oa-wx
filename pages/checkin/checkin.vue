@@ -14,6 +14,8 @@
 </template>
 
 <script>
+	import QQMapWX from '../../lib/qqmap-wx-jssdk.js'
+	var qqmapsdk;
 	export default {
 		data() {
 			return {
@@ -24,25 +26,62 @@
 				showImage: false
 			}
 		},
+		onLoad: function() {
+			qqmapsdk = new QQMapWX({
+				key: 'D2ZBZ-WPMCT-VAIXM-VE6FP-FC753-TYB7O'
+			})
+		},
 		methods: {
 			clickBtn: function() {
+
 				let that = this;
 				if (that.btnText == '拍照') {
 					let ctx = wx.createCameraContext();
 					ctx.takePhoto({
 						quality: 'high',
-						success:function(resp){
+						success: function(resp) {
 							that.photoPath = resp.tempImagePath;
 							that.showCamera = false;
 							that.showImage = true;
 							that.btnText = '签到'
 						}
 					});
-				}else{
-					//todo 点击签到功能
+				} else {
+					// todo 点击签到功能
+					uni.showLoading({
+						title: '签到中请稍后'
+					});
+					setTimeout(function() {
+						uni.hideLoading()
+					}, 3000)
+
+					uni.getLocation({
+						type: 'wgs84',
+						success: function(resp) {
+							let latitude = resp.latitude;
+							let longitude = resp.longitude;
+							console.log(latitude)
+							console.log(longitude)
+							qqmapsdk.reverseGeocoder({
+								location: {
+									latitude: latitude,
+									longitude: longitude
+								},
+								success: function(res) {
+									console.log(res.result.address)
+									let address = res.result.address;
+									let addressComponent = res.result.address_component;
+									let nation = addressComponent.nation;
+									let provice = addressComponent.provice;
+									let city = addressComponent.city;
+									let district = addressComponent.district;
+								}
+							})
+						},
+					})
 				}
 			},
-			afresh: function(){
+			afresh: function() {
 				this.showCamera = true;
 				this.showImage = false;
 				this.btnText = '拍照';

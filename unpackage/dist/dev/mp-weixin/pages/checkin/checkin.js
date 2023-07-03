@@ -43,8 +43,6 @@ const _sfc_main = {
           success: function(resp) {
             let latitude = resp.latitude;
             let longitude = resp.longitude;
-            console.log(latitude);
-            console.log(longitude);
             qqmapsdk.reverseGeocoder({
               location: {
                 latitude,

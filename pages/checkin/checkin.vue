@@ -60,8 +60,6 @@
 						success: function(resp) {
 							let latitude = resp.latitude;
 							let longitude = resp.longitude;
-							console.log(latitude)
-							console.log(longitude)
 							qqmapsdk.reverseGeocoder({
 								location: {
 									latitude: latitude,

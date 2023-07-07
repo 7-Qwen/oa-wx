@@ -28,7 +28,10 @@ function createApp() {
   let baseUrl = "http://192.168.31.149:8080";
   app.config.globalProperties.url = {
     register: baseUrl + "/user/register",
-    login: baseUrl + "/user/login"
+    login: baseUrl + "/user/login",
+    checkin: baseUrl + "/user/check",
+    createFaceModel: baseUrl + "/user/check/createModel",
+    validCanCheckin: baseUrl + "/user/checkCheckin"
   };
   app.config.globalProperties.ajax = (url, method, data, fun) => {
     common_vendor.index.request({

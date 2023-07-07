@@ -21,7 +21,10 @@ export function createApp() {
 	let baseUrl = "http://192.168.31.149:8080"
 	app.config.globalProperties.url = {
 		register: baseUrl + "/user/register",
-		login: baseUrl + "/user/login"
+		login: baseUrl + "/user/login",
+		checkin: baseUrl + "/user/check",
+		createFaceModel: baseUrl + "/user/check/createModel",
+		validCanCheckin: baseUrl + "/user/checkCheckin",
 	}
 	//定义全局ajax
 	app.config.globalProperties.ajax = (url, method, data, fun) => {
@@ -56,7 +59,7 @@ export function createApp() {
 					console.log(resp.data)
 					uni.showToast({
 						icon: 'none',
-						title: resp.data.msg==null?"注册失败":resp.data.msg
+						title: resp.data.msg == null ? "注册失败" : resp.data.msg
 					})
 				}
 			}

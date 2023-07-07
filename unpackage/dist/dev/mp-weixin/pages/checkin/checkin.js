@@ -9,7 +9,12 @@ const _sfc_main = {
       photoPath: "",
       btnText: "拍照",
       showCamera: true,
-      showImage: false
+      showImage: false,
+      address: "",
+      country: "",
+      province: "",
+      city: "",
+      district: ""
     };
   },
   onLoad: function() {
@@ -35,9 +40,6 @@ const _sfc_main = {
         common_vendor.index.showLoading({
           title: "签到中请稍后"
         });
-        setTimeout(function() {
-          common_vendor.index.hideLoading();
-        }, 3e3);
         common_vendor.index.getLocation({
           type: "wgs84",
           success: function(resp) {
@@ -49,13 +51,82 @@ const _sfc_main = {
                 longitude
               },
               success: function(res) {
-                console.log(res.result.address);
-                res.result.address;
+                let address = res.result.address;
                 let addressComponent = res.result.address_component;
-                addressComponent.nation;
-                addressComponent.provice;
-                addressComponent.city;
-                addressComponent.district;
+                let country = addressComponent.nation;
+                let province = addressComponent.province;
+                let city = addressComponent.city;
+                let district = addressComponent.district;
+                common_vendor.index.uploadFile({
+                  url: that.url.checkin,
+                  filePath: that.photoPath,
+                  name: "photo",
+                  header: {
+                    token: common_vendor.index.getStorageSync("token")
+                  },
+                  formData: {
+                    address,
+                    country,
+                    province,
+                    city,
+                    district
+                  },
+                  success: function(resp2) {
+                    let check = JSON.parse(resp2.data).msg;
+                    if (resp2.statusCode == 500 && check == "用户未建模") {
+                      common_vendor.index.hideLoading();
+                      common_vendor.index.showModal({
+                        title: "提示信息",
+                        content: "系统中不存在你的人脸识别模型,是否使用当前照片作为人脸识别模型?",
+                        success: function(res2) {
+                          if (res2.confirm) {
+                            common_vendor.index.uploadFile({
+                              url: that.url.createFaceModel,
+                              filePath: that.photoPath,
+                              name: "photo",
+                              header: {
+                                "token": common_vendor.index.getStorageSync(
+                                  "token"
+                                )
+                              },
+                              success: function(resp3) {
+                                console.log(resp3);
+                                if (resp3.statusCode == 500) {
+                                  common_vendor.index.showToast({
+                                    title: JSON.parse(resp3.data).msg,
+                                    icon: "none"
+                                  });
+                                } else if (resp3.statusCode == 200) {
+                                  common_vendor.index.showToast({
+                                    title: "人脸建模成功",
+                                    icon: "none"
+                                  });
+                                }
+                              }
+                            });
+                          }
+                        }
+                      });
+                    } else if (resp2.statusCode == 200) {
+                      let data = JSON.parse(resp2.data);
+                      let code = data.code;
+                      data.msg;
+                      if (code == 200) {
+                        common_vendor.index.hideLoading();
+                        common_vendor.index.showToast({
+                          title: "签到成功",
+                          complete: function() {
+                          }
+                        });
+                      }
+                    } else if (resp2.statusCode == 500) {
+                      common_vendor.index.showToast({
+                        title: JSON.parse(resp2.data).msg,
+                        icon: "none"
+                      });
+                    }
+                  }
+                });
               }
             });
           }

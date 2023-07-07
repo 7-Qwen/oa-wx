@@ -14,6 +14,9 @@
 </template>
 
 <script>
+	import {
+		provide
+	} from "vue";
 	import QQMapWX from '../../lib/qqmap-wx-jssdk.js'
 	var qqmapsdk;
 	export default {
@@ -23,7 +26,12 @@
 				photoPath: '',
 				btnText: '拍照',
 				showCamera: true,
-				showImage: false
+				showImage: false,
+				address: '',
+				country: '',
+				province: '',
+				city: '',
+				district: '',
 			}
 		},
 		onLoad: function() {
@@ -33,7 +41,6 @@
 		},
 		methods: {
 			clickBtn: function() {
-
 				let that = this;
 				if (that.btnText == '拍照') {
 					let ctx = wx.createCameraContext();
@@ -43,7 +50,7 @@
 							that.photoPath = resp.tempImagePath;
 							that.showCamera = false;
 							that.showImage = true;
-							that.btnText = '签到'
+							that.btnText = '签到';
 						}
 					});
 				} else {
@@ -51,10 +58,6 @@
 					uni.showLoading({
 						title: '签到中请稍后'
 					});
-					setTimeout(function() {
-						uni.hideLoading()
-					}, 3000)
-
 					uni.getLocation({
 						type: 'wgs84',
 						success: function(resp) {
@@ -66,17 +69,90 @@
 									longitude: longitude
 								},
 								success: function(res) {
-									console.log(res.result.address)
 									let address = res.result.address;
 									let addressComponent = res.result.address_component;
-									let nation = addressComponent.nation;
-									let provice = addressComponent.provice;
+									let country = addressComponent.nation;
+									let province = addressComponent.province;
 									let city = addressComponent.city;
 									let district = addressComponent.district;
+									uni.uploadFile({
+										url: that.url.checkin,
+										filePath: that.photoPath,
+										name: "photo",
+										header: {
+											token: uni.getStorageSync('token')
+										},
+										formData: {
+											address: address,
+											country: country,
+											province: province,
+											city: city,
+											district: district,
+										},
+										success: function(resp) {
+											let check =  JSON.parse(resp.data).msg
+											if (resp.statusCode == 500 && check == '用户未建模') {
+												uni.hideLoading()
+												uni.showModal({
+													title: '提示信息',
+													content: '系统中不存在你的人脸识别模型,是否使用当前照片作为人脸识别模型?',
+													success: function(res) {
+														if (res.confirm) {
+															//当用户点击了确定按钮则开始上传照片
+															uni.uploadFile({
+																url: that.url.createFaceModel,
+																filePath: that.photoPath,
+																name: 'photo',
+																header: {
+																	'token': uni.getStorageSync(
+																		'token')
+																},
+																success: function(resp) {
+																	console.log(resp)
+																	if (resp.statusCode == 500) {
+																		uni.showToast({
+																			title: JSON.parse(resp.data).msg,
+																			icon: 'none'
+																		});
+																	} else if (resp.statusCode ==
+																		200) {
+																		uni.showToast({
+																			title: '人脸建模成功',
+																			icon: 'none'
+																		})
+																	}
+																}
+									
+															})
+														}
+													}
+												});
+											} else if (resp.statusCode == 200) {
+												let data = JSON.parse(resp.data);
+												let code = data.code;
+												let msg = data.msg;
+												if (code == 200) {
+													uni.hideLoading();
+													//签到成功
+													uni.showToast({
+														title: '签到成功',
+														complete: function() {
+															//todo 跳转到结果统计页面
+														}
+													});
+												}
+											} else if (resp.statusCode == 500) {
+												uni.showToast({
+													title: JSON.parse(resp.data).msg,
+													icon: 'none'
+												});
+											}
+										}
+									});
 								}
-							})
+							});
 						},
-					})
+					});
 				}
 			},
 			afresh: function() {

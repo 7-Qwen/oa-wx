@@ -43,26 +43,27 @@
 			</view>
 		</view>
 		<view class="checkin-report">
-			<image src="../../static/icon-1.png" mode="widthFix" class="big-icon">
-				<view class="report-title">
-					<text class="days">{{checkinDays}}</text>
-					<text class="unit">天</text>
+			<image src="../../static/big-icon-1.png" mode="widthFix" class="big-icon"></image>
+			<view class="report-title">
+				<text class="days">{{checkinDays}}</text>
+				<text class="unit">天</text>
+			</view>
+			<view class="sub-title">
+				<text>累计签到</text>
+				<view class="line"></view>
+			</view>
+			<view class="calendar-container">
+				<view class="calendar" v-for="one in weekCheckin" :key="one">
+					<image src="../../static/icon-9.png" mode="widthFix" class="calendar-icon" v-if="one.type!='节假日'">
+					</image>
+					<image src="../../static/icon-10.png" mode="widthFix" class="calendar-icon" v-if="one.type=='节假日'">
+					</image>
+					<text class="day">{{one.day}}</text>
+					<text class="result green" v-if="one.status=='正常'">正常</text>
+					<text class="result yellow" v-if="one.status=='迟到'">迟到</text>
+					<text class="result red" v-if="one.status=='缺勤'">缺勤</text>
 				</view>
-				<view class="sub-title">
-					<text>累计签到</text>
-					<view class="line"></view>
-				</view>
-				<view class="calendar-container">
-					<view class="calendar" v-for="one in weekCheckin" :key="one">
-						<image src="../../static/icon-9.png" mode="widthFix" class="calendar-icon" v-if="one.type!='节假日'"></image>
-						<image src="../../static/icon-10.png" mode="widthFix" class="calendar-icon" v-if="one.type=='节假日'"></image>
-						<text class="day">{{one.day}}</text>
-						<text class="result green" v-if="one.status=='正常'">正常</text>
-						<text class="result yellow" v-if="one.status=='迟到'">迟到</text>
-						<text class="result red" v-if="one.status=='缺勤'">缺勤</text>
-					</view>
-				</view>
-			</image>
+			</view>
 		</view>
 	</view>
 </template>
@@ -78,9 +79,9 @@
 				status: '正常',
 				risk: '低风险',
 				checkinTime: '08:25',
-				date: '2020年12月1日',
+				date: '2023年07月09日',
 				attendanceTime: '08:30',
-				closingTime: '09:30',
+				closingTime: '21:30',
 				checkinDays: 201,
 				weekCheckin: [{
 						type: '工作日',

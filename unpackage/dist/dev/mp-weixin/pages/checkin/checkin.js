@@ -116,6 +116,9 @@ const _sfc_main = {
                         common_vendor.index.showToast({
                           title: "签到成功",
                           complete: function() {
+                            common_vendor.index.navigateTo({
+                              url: "../checkin_result/checkin_result"
+                            });
                           }
                         });
                       }

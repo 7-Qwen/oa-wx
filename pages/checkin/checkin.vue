@@ -137,7 +137,10 @@
 													uni.showToast({
 														title: '签到成功',
 														complete: function() {
-															//todo 跳转到结果统计页面
+															//跳转到结果统计页面
+															uni.navigateTo({
+																url:'../checkin_result/checkin_result'
+															})
 														}
 													});
 												}

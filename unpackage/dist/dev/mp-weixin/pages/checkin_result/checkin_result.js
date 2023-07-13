@@ -3,57 +3,39 @@ const common_vendor = require("../../common/vendor.js");
 const _sfc_main = {
   data() {
     return {
-      name: "无名氏",
-      photo: "URL",
-      deptName: "管理部",
-      address: "辽宁省大连市",
-      status: "正常",
-      risk: "低风险",
-      checkinTime: "08:25",
-      date: "2023年07月09日",
-      attendanceTime: "08:30",
-      closingTime: "21:30",
-      checkinDays: 201,
-      weekCheckin: [
-        {
-          type: "工作日",
-          day: "周一",
-          status: "缺勤"
-        },
-        {
-          type: "工作日",
-          day: "周二",
-          status: "迟到"
-        },
-        {
-          type: "工作日",
-          day: "周三",
-          status: "正常"
-        },
-        {
-          type: "工作日",
-          day: "周四",
-          status: "正常"
-        },
-        {
-          type: "工作日",
-          day: "周五",
-          status: "正常"
-        },
-        {
-          type: "休息日",
-          day: "周六",
-          status: ""
-        },
-        {
-          type: "休息日",
-          day: "周天",
-          status: ""
-        }
-      ]
+      name: "",
+      photo: "",
+      deptName: "",
+      address: "",
+      status: "",
+      risk: "",
+      checkinTime: "",
+      date: "",
+      attendanceTime: "",
+      closingTime: "",
+      checkinDays: null,
+      weekCheckin: []
     };
   },
-  methods: {}
+  methods: {},
+  onShow() {
+    let that = this;
+    that.ajax(that.url.searchTodayCheckin, "GET", null, function(resp) {
+      let result = resp.data.result;
+      that.name = result.name;
+      that.photo = result.photo;
+      that.deptName = result.deptName;
+      that.address = result.address;
+      that.status = result.status;
+      that.risk = result.risk;
+      that.checkinTime = result.checkinTime;
+      that.date = result.date;
+      that.attendanceTime = result.attendanceTime;
+      that.closingTime = result.closingTime;
+      that.checkinDays = result.checkinDays;
+      that.weekCheckin = result.weekCheckin;
+    });
+  }
 };
 function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
   return common_vendor.e({

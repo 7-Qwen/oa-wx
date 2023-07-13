@@ -22,9 +22,12 @@ export function createApp() {
 	app.config.globalProperties.url = {
 		register: baseUrl + "/user/register",
 		login: baseUrl + "/user/login",
-		checkin: baseUrl + "/user/check",
-		createFaceModel: baseUrl + "/user/check/createModel",
-		validCanCheckin: baseUrl + "/user/checkCheckin",
+		checkin: baseUrl + "/checkin/check",
+		createFaceModel: baseUrl + "/checkin/check/createModel",
+		validCanCheckin: baseUrl + "/checkin/checkCheckin",
+		searchTodayCheckin: baseUrl + "/checkin/searchThisWeekUserCheckin",
+		getUserInfo: baseUrl + "/user/getUserInfo",
+		searchMonthCheckin:baseUrl+"/checkin/getUserMonthCheckin"
 	}
 	//定义全局ajax
 	app.config.globalProperties.ajax = (url, method, data, fun) => {
@@ -65,6 +68,19 @@ export function createApp() {
 			}
 		})
 	};
+	//定义全局权限验证函数
+	app.config.globalProperties.checkPermission = (perms) => {
+		let permission = uni.getStorageSync("permission");
+		let result = false;
+		for (let one of perms) {
+			if (permission.indexOf(one) != -1) {
+				result = true;
+				break;
+			}
+		}
+		return result;
+	}
+
 	return {
 		app
 	}

@@ -11,6 +11,7 @@ if (!Math) {
   "./pages/mine/mine.js";
   "./pages/checkin/checkin.js";
   "./pages/checkin_result/checkin_result.js";
+  "./pages/my_checkin/my_checkin.js";
 }
 const _sfc_main = {
   onLaunch: function() {
@@ -30,9 +31,12 @@ function createApp() {
   app.config.globalProperties.url = {
     register: baseUrl + "/user/register",
     login: baseUrl + "/user/login",
-    checkin: baseUrl + "/user/check",
-    createFaceModel: baseUrl + "/user/check/createModel",
-    validCanCheckin: baseUrl + "/user/checkCheckin"
+    checkin: baseUrl + "/checkin/check",
+    createFaceModel: baseUrl + "/checkin/check/createModel",
+    validCanCheckin: baseUrl + "/checkin/checkCheckin",
+    searchTodayCheckin: baseUrl + "/checkin/searchThisWeekUserCheckin",
+    getUserInfo: baseUrl + "/user/getUserInfo",
+    searchMonthCheckin: baseUrl + "/checkin/getUserMonthCheckin"
   };
   app.config.globalProperties.ajax = (url, method, data, fun) => {
     common_vendor.index.request({
@@ -66,6 +70,17 @@ function createApp() {
         }
       }
     });
+  };
+  app.config.globalProperties.checkPermission = (perms) => {
+    let permission = common_vendor.index.getStorageSync("permission");
+    let result = false;
+    for (let one of perms) {
+      if (permission.indexOf(one) != -1) {
+        result = true;
+        break;
+      }
+    }
+    return result;
   };
   return {
     app

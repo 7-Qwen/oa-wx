@@ -27,7 +27,12 @@ export function createApp() {
 		validCanCheckin: baseUrl + "/checkin/checkCheckin",
 		searchTodayCheckin: baseUrl + "/checkin/searchThisWeekUserCheckin",
 		getUserInfo: baseUrl + "/user/getUserInfo",
-		searchMonthCheckin:baseUrl+"/checkin/getUserMonthCheckin"
+		searchMonthCheckin: baseUrl + "/checkin/getUserMonthCheckin",
+		refreshMessage: baseUrl + "/message/refreshMessage",
+		searchMessageByPage: baseUrl + "/message/getMessageByPage",
+		searchMessageById: baseUrl + '/message/getMessageById',
+		updateReadFlag: baseUrl + '/message/updateReadFlag',
+		deleteMessageById: baseUrl + '/message/deleteMessageById'
 	}
 	//定义全局ajax
 	app.config.globalProperties.ajax = (url, method, data, fun) => {
@@ -80,7 +85,36 @@ export function createApp() {
 		}
 		return result;
 	}
-
+	//定义全局加载分页数据函数
+	app.config.globalProperties.loadMessageList = (ref) => {
+		let data = {
+			page: ref.page,
+			size: ref.size,
+		};
+		ref.ajax(ref.url.searchMessageByPage, "POST", data, function(resp) {
+			console.log(resp)
+			let result = resp.data.result;
+			if (result == null || result.length == 0) {
+				ref.isLastPage = true
+				ref.page = ref.page - 1;
+				uni.showToast({
+					icon: 'none',
+					title: '已经到底了'
+				})
+			} else {
+				if (ref.page == 1) {
+					ref.list = [];
+				}
+				ref.list = ref.list.concat(result);
+				if (ref.page > 1) {
+					uni.showToast({
+						icon: 'none',
+						title: '又加载了' + result.length + '条消息'
+					})
+				}
+			}
+		})
+	}
 	return {
 		app
 	}

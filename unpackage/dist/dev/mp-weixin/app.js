@@ -12,6 +12,8 @@ if (!Math) {
   "./pages/checkin/checkin.js";
   "./pages/checkin_result/checkin_result.js";
   "./pages/my_checkin/my_checkin.js";
+  "./pages/message_list/message_list.js";
+  "./pages/message/message.js";
 }
 const _sfc_main = {
   onLaunch: function() {
@@ -36,7 +38,12 @@ function createApp() {
     validCanCheckin: baseUrl + "/checkin/checkCheckin",
     searchTodayCheckin: baseUrl + "/checkin/searchThisWeekUserCheckin",
     getUserInfo: baseUrl + "/user/getUserInfo",
-    searchMonthCheckin: baseUrl + "/checkin/getUserMonthCheckin"
+    searchMonthCheckin: baseUrl + "/checkin/getUserMonthCheckin",
+    refreshMessage: baseUrl + "/message/refreshMessage",
+    searchMessageByPage: baseUrl + "/message/getMessageByPage",
+    searchMessageById: baseUrl + "/message/getMessageById",
+    updateReadFlag: baseUrl + "/message/updateReadFlag",
+    deleteMessageById: baseUrl + "/message/deleteMessageById"
   };
   app.config.globalProperties.ajax = (url, method, data, fun) => {
     common_vendor.index.request({
@@ -81,6 +88,35 @@ function createApp() {
       }
     }
     return result;
+  };
+  app.config.globalProperties.loadMessageList = (ref) => {
+    let data = {
+      page: ref.page,
+      size: ref.size
+    };
+    ref.ajax(ref.url.searchMessageByPage, "POST", data, function(resp) {
+      console.log(resp);
+      let result = resp.data.result;
+      if (result == null || result.length == 0) {
+        ref.isLastPage = true;
+        ref.page = ref.page - 1;
+        common_vendor.index.showToast({
+          icon: "none",
+          title: "已经到底了"
+        });
+      } else {
+        if (ref.page == 1) {
+          ref.list = [];
+        }
+        ref.list = ref.list.concat(result);
+        if (ref.page > 1) {
+          common_vendor.index.showToast({
+            icon: "none",
+            title: "又加载了" + result.length + "条消息"
+          });
+        }
+      }
+    });
   };
   return {
     app

@@ -28,7 +28,10 @@
 			</swiper-item>
 		</swiper>
 	</view>
-	<view class="notify-container">
+	<uni-popup ref="popupMsg" type="top">
+		<uni-popup-message type="success" :message="'接收到'+lastRows+'条消息'" :duration="2000"></uni-popup-message>
+	</uni-popup>
+	<view class="notify-container" @tap="toPage('消息提醒','/pages/message_list/message_list')">
 		<view class="notify-title">
 			<image src="../../static/icon-1.png" mode="widthFix" class="notify-icon"></image>
 			消息提醒
@@ -39,7 +42,8 @@
 	<view class="nav-container">
 		<view class="nav-row">
 			<view class="nav">
-				<image src='../../static/nav-1.png' mode="widthFix" class="icon" @tap="toPage('在线签到','../checkin/checkin')"></image>
+				<image src='../../static/nav-1.png' mode="widthFix" class="icon"
+					@tap="toPage('在线签到','../checkin/checkin')"></image>
 				<text class="name">在线签到</text>
 			</view>
 			<view class="nav">
@@ -100,6 +104,8 @@
 		data() {
 			return {
 				unreadRows: 0,
+				timer: null,
+				lastRows: 0,
 			}
 		},
 		methods: {
@@ -109,8 +115,35 @@
 					url: url
 				})
 			}
+		},
+		onLoad: function() {
+			//监听时间
+			let that = this;
+			uni.$on('showMessage', () => {
+				that.$refs.popupMsg.open();
+			});
+		},
+		onUnload() {
+			//移除监听事件
+			uni.$off('showMessage');
+		},
+		onShow() {
+			let that = this;
+			that.timer = setInterval(function() {
+				that.ajax(that.url.refreshMessage, 'GET', null, (resp) => {
+					console.log(resp)
+					that.unreadRows = resp.data.unRead;
+					that.lastRows = resp.data.lastRows;
+					if (that.lastRows > 0) {
+						uni.$emit('showMessage');
+					}
+				});
+			}, 5 * 1000);
+		},
+		onHide:function(){
+			clearInterval(this.timer)
 		}
-	}
+}
 </script>
 
 <style lang="less">

@@ -9,7 +9,9 @@
     "pages/mine/mine",
     "pages/checkin/checkin",
     "pages/checkin_result/checkin_result",
-    "pages/my_checkin/my_checkin"
+    "pages/my_checkin/my_checkin",
+    "pages/message_list/message_list",
+    "pages/message/message"
   ],
   "window": {
     "navigationBarTextStyle": "white",
